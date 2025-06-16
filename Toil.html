@@ -4,145 +4,163 @@
   <title>TOIL Tracker</title>
 </head>
 
-  <h1>TOIL Tracker</h1>
+<!-- Big heading at the top of the page -->
+<h1>TOIL Tracker</h1>
 
-  <div style="background: white; padding: 10px; margin-bottom: 15px;">
-    <h3>TOIL Balance</h3>
-    <p id="balance">Loading...</p>
-  </div>
+<!-- Section showing how many hours you have -->
+<div style="background: white; padding: 10px; margin-bottom: 15px;">
+  <h3>TOIL Balance</h3>
+  <p id="balance">Loading...</p> <!-- This will show the total TOIL hours -->
+</div>
 
-  <div style="background: white; padding: 10px; margin-bottom: 15px;">
-    <h3>Add Hours</h3>
-    <form id="addForm">
-      <label>Date:</label><br>
-      <input type="date" id="toilDate"><br><br>
-      <label>Hours Earned:</label><br>
-      <input type="number" id="toilHours" step="0.01"><br><br>
-      <button type="submit">Add</button>
-    </form>
-  </div>
+<!-- Section for adding hours you earned -->
+<div style="background: white; padding: 10px; margin-bottom: 15px;">
+  <h3>Add Hours</h3>
+  <form id="addForm">
+    <label>Date:</label><br>
+    <input type="date" id="toilDate"><br><br> <!-- Pick the date you earned TOIL -->
+    <label>Hours Earned:</label><br>
+    <input type="number" id="toilHours" step="0.01"><br><br> <!-- Enter how many hours you earned -->
+    <button type="submit">Add</button> <!-- Click to add the hours -->
+  </form>
+</div>
 
-  <div style="background: white; padding: 10px; margin-bottom: 15px;">
-    <h3>Use Hours for Day Off</h3>
-    <form id="applyForm">
-      <label>Day Off Date:</label><br>
-      <input type="date" id="dayOffDate"><br><br> <!-- ✅ NEW INPUT -->
-      <label>Hours to Use:</label><br>
-      <input type="number" id="applyHours" step="0.01"><br><br>
-      <button type="submit">Apply</button>
-    </form>
-  </div>
+<!-- Section for using up hours for a day off -->
+<div style="background: white; padding: 10px; margin-bottom: 15px;">
+  <h3>Use Hours for Day Off</h3>
+  <form id="applyForm">
+    <label>Day Off Date:</label><br>
+    <input type="date" id="dayOffDate"><br><br> <!-- Pick the day off date -->
+    <label>Hours to Use:</label><br>
+    <input type="number" id="applyHours" step="0.01"><br><br> <!-- Enter how many hours to use -->
+    <button type="submit">Apply</button> <!-- Click to use the hours -->
+  </form>
+</div>
 
-  <div style="background: white; padding: 10px;">
-    <h3>TOIL Entries</h3>
-    <button onclick="app.showEntries()">Show All</button>
-    <pre id="entries"></pre>
-  </div>
+<!-- Section to see all your TOIL records -->
+<div style="background: white; padding: 10px;">
+  <h3>TOIL Entries</h3>
+  <button onclick="app.showEntries()">Show All</button> <!-- Click to see everything you've added or used -->
+  <pre id="entries"></pre> <!-- This is where the list will show up -->
+</div>
 
-  <script>
-    class Entry {
-      constructor(date, hours) {
-        this.date = date;
-        this.hours = hours;
-      }
+<script>
+  // This class just stores one TOIL entry (like "2 hours on 10 June")
+  class Entry {
+    constructor(date, hours) {
+      this.date = date;
+      this.hours = hours;
+    }
 
-      toString() {
-        return this.date + "|" + this.hours;
-      }
+    // Turns entry into a string so we can save it
+    toString() {
+      return this.date + "|" + this.hours;
+    }
 
-      static fromString(str) {
-        let parts = str.split("|");
-        return new Entry(parts[0], parseFloat(parts[1]));
+    // Turns a saved string back into an Entry object
+    static fromString(str) {
+      let parts = str.split("|");
+      return new Entry(parts[0], parseFloat(parts[1]));
+    }
+  }
+
+  // This is the main app that does all the work
+  class TOILApp {
+    constructor() {
+      this.entries = [];  // List of all your TOIL entries
+      this.total = 0;     // Total TOIL hours you have
+      this.load();        // Trys to load saved data from local storage
+      this.updateBalance(); // Shows the total hours
+    }
+
+    // Loads saved data from the browser
+    load() {
+      let data = localStorage.getItem("toil");
+      if (data) {
+        let lines = data.split("\n");
+        this.total = parseFloat(lines[0]); // First line is the total
+        for (let i = 1; i < lines.length; i++) {
+          this.entries.push(Entry.fromString(lines[i])); // Adds each entry
+        }
       }
     }
 
-    class TOILApp {
-      constructor() {
-        this.entries = [];
-        this.total = 0;
-        this.load();
-        this.updateBalance();
+    // Saves the current data so it doesn't disappear when you close the browser
+    save() {
+      let lines = [this.total.toString()];
+      for (let entry of this.entries) {
+        lines.push(entry.toString());
       }
+      localStorage.setItem("toil", lines.join("\n"));
+    }
 
-      load() {
-        let data = localStorage.getItem("toil");
-        if (data) {
-          let lines = data.split("\n");
-          this.total = parseFloat(lines[0]);
-          for (let i = 1; i < lines.length; i++) {
-            this.entries.push(Entry.fromString(lines[i]));
-          }
-        }
-      }
+    // Updates the TOIL balance on the screen
+    updateBalance() {
+      document.getElementById("balance").textContent = this.total.toFixed(2) + " hours";
+    }
 
-      save() {
-        let lines = [this.total.toString()];
-        for (let entry of this.entries) {
-          lines.push(entry.toString());
-        }
-        localStorage.setItem("toil", lines.join("\n"));
-      }
+    // Adds new hours to your balance
+    add(date, hours) {
+      this.entries.push(new Entry(date, hours));
+      this.total += hours;
+      this.save();
+      this.updateBalance();
+      alert("Hours added!"); // Lets the user know it worked
+    }
 
-      updateBalance() {
-        document.getElementById("balance").textContent = this.total.toFixed(2) + " hours";
-      }
-
-      add(date, hours) {
-        this.entries.push(new Entry(date, hours));
-        this.total += hours;
+    // Uses some of your hours for a day off
+    apply(hours, dayOffDate) {
+      if (hours > this.total) {
+        alert("You don't have enough hours!"); // Stops if they try to use more than they have
+      } else {
+        this.entries.push(new Entry(dayOffDate, -hours)); // Saves the used hours
+        this.total -= hours;
         this.save();
         this.updateBalance();
-        alert("Hours added.");
-      }
-
-      apply(hours, dayOffDate) {
-        if (hours > this.total) {
-          alert("Not enough TOIL hours.");
-        } else {
-          this.entries.push(new Entry(dayOffDate, -hours)); // ✅ Use chosen date
-          this.total -= hours;
-          this.save();
-          this.updateBalance();
-          alert("Day off applied for " + dayOffDate + ".");
-        }
-      }
-
-      showEntries() {
-        let area = document.getElementById("entries");
-        if (this.entries.length === 0) {
-          area.textContent = "No entries.";
-        } else {
-          area.textContent = this.entries.map(e => e.date + ": " + e.hours + " hrs").join("\n");
-        }
+        alert("Day off booked for " + dayOffDate + "!"); // Lets them know it worked
       }
     }
 
-    let app = new TOILApp();
-
-    document.getElementById("addForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      let date = document.getElementById("toilDate").value;
-      let hours = parseFloat(document.getElementById("toilHours").value);
-      if (!date || isNaN(hours) || hours <= 0) {
-        alert("Please enter valid data.");
-        return;
+    // Shows all the entries on the screen
+    showEntries() {
+      let area = document.getElementById("entries");
+      if (this.entries.length === 0) {
+        area.textContent = "No entries yet.";
+      } else {
+        area.textContent = this.entries.map(e => e.date + ": " + e.hours + " hrs").join("\n");
       }
-      app.add(date, hours);
-      this.reset();
-    });
+    }
+  }
 
-    document.getElementById("applyForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      let date = document.getElementById("dayOffDate").value;
-      let hours = parseFloat(document.getElementById("applyHours").value);
-      if (!date || isNaN(hours) || hours <= 0) {
-        alert("Please enter valid data.");
-        return;
-      }
-      app.apply(hours, date); // ✅ Pass date to apply()
-      this.reset();
-    });
-  </script>
+  // Creates the app and get everything ready
+  let app = new TOILApp();
+
+  // Handles the form for adding hours
+  document.getElementById("addForm").addEventListener("submit", function(e) {
+    e.preventDefault(); // Stop it from reloading the page
+    let date = document.getElementById("toilDate").value;
+    let hours = parseFloat(document.getElementById("toilHours").value);
+    if (!date || isNaN(hours) || hours <= 0) {
+      alert("Please enter a proper date and number of hours.");
+      return;
+    }
+    app.add(date, hours); // Adds the new hours
+    this.reset(); // Clears the form
+  });
+
+  // Handles the form for using hours
+  document.getElementById("applyForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    let date = document.getElementById("dayOffDate").value;
+    let hours = parseFloat(document.getElementById("applyHours").value);
+    if (!date || isNaN(hours) || hours <= 0) {
+      alert("Please enter a proper date and number of hours.");
+      return;
+    }
+    app.apply(hours, date); // Uses the hours
+    this.reset(); // Clears the form
+  });
+</script>
 
 </body>
 </html>
