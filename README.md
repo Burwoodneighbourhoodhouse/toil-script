@@ -22,5 +22,5 @@ There are 3 main sections:
 ##  How to Use
 
 1. Clone or download the repo  
-2. Open `index.html` in your browser  
+2. Open `TOIL.html` in your browser  
 3. Start tracking your TOIL!
