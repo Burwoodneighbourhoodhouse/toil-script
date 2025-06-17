@@ -24,8 +24,3 @@ There are 3 main sections:
 1. Clone or download the repo  
 2. Open `index.html` in your browser  
 3. Start tracking your TOIL!
-
-```bash
-git clone https://github.com/your-username/toil-tracker.git
-cd toil-tracker
-open index.html
