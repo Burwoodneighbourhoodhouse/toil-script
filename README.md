@@ -1,5 +1,5 @@
 #  TOIL Work Hours Tracker
-
+- by Harrison John Plazina as a part of SWL workplace over a 2 week course in june
 A simple program for tracking **TOIL** hours — add hours when you work extra and use them when you take time off
 
 ##  Features
